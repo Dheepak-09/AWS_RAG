@@ -1,0 +1,1540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>B-Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:         #111113;
+  --bg2:        #18181b;
+  --bg3:        #1f1f23;
+  --bg4:        #27272c;
+  --border:     rgba(255,255,255,0.07);
+  --border2:    rgba(255,255,255,0.12);
+  --text:       #f4f4f5;
+  --text2:      #a1a1aa;
+  --text3:      #52525b;
+  --accent:     #6366f1;
+  --accent2:    #818cf8;
+  --accent-dim: rgba(99,102,241,0.12);
+  --accent-glow:rgba(99,102,241,0.25);
+  --red:        #f87171;
+  --red-dim:    rgba(248,113,113,0.12);
+  --green:      #4ade80;
+  --green-dim:  rgba(74,222,128,0.12);
+  --amber:      #fbbf24;
+  --radius:     10px;
+  --radius-lg:  16px;
+}
+
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; overflow: hidden; }
+
+/* ══════════════════════════════════════════
+   LOGIN SCREEN
+══════════════════════════════════════════ */
+#loginScreen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.4s ease;
+}
+#loginScreen.hidden { opacity: 0; pointer-events: none; }
+
+.login-card {
+  width: 380px;
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 40px 36px;
+  display: flex; flex-direction: column; gap: 24px;
+}
+
+.login-logo {
+  text-align: center;
+}
+.login-logo-icon {
+  width: 52px; height: 52px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-glow);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  margin: 0 auto 14px;
+}
+.login-logo h1 {
+  font-family: 'Lora', serif;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.login-logo p {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+
+.login-fields { display: flex; flex-direction: column; gap: 12px; }
+
+.field-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.field-input {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'Sora', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field-input:focus { border-color: var(--accent); }
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Sora', sans-serif;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.login-btn:hover { background: var(--accent2); }
+.login-btn:active { transform: scale(0.98); }
+
+.login-error {
+  font-size: 12px;
+  color: var(--red);
+  text-align: center;
+  background: var(--red-dim);
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: none;
+}
+.login-error.show { display: block; }
+
+/* ══════════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════════ */
+.app {
+  display: flex;
+  height: 100vh;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.app.visible { opacity: 1; }
+
+/* ══════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════ */
+.sidebar {
+  width: 258px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sidebar-top {
+  padding: 16px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 6px 10px;
+}
+
+.brand {
+  font-family: 'Lora', serif;
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px;
+  color: var(--text2);
+}
+
+.user-pill .role-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.role-dot.admin { background: var(--accent2); }
+.role-dot.user  { background: var(--green); }
+
+.sidebar-action-btn {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 12px;
+  font-family: 'Sora', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+  text-align: left;
+  position: relative;
+}
+.sidebar-action-btn:hover { background: var(--bg3); color: var(--text); }
+.sidebar-action-btn input[type="file"] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+}
+.sidebar-action-btn.admin-only { display: none; }
+
+.section-lbl {
+  padding: 14px 16px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Scrollable areas */
+.sidebar-scroll {
+  overflow-y: auto;
+  padding: 0 8px 8px;
+}
+.sidebar-scroll::-webkit-scrollbar { width: 3px; }
+.sidebar-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+#booksScroll  { max-height: 220px; }
+#sessionsScroll { flex: 1; }
+
+/* Book item */
+.book-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 1px;
+  transition: background 0.12s;
+}
+.book-item:hover { background: var(--bg3); }
+.book-item.active { background: var(--accent-dim); }
+
+.book-icon {
+  width: 28px; height: 28px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.book-info { flex: 1; min-width: 0; }
+.book-name {
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text);
+}
+.book-sub { font-size: 10px; color: var(--text3); margin-top: 1px; }
+
+.book-del {
+  width: 22px; height: 22px;
+  border-radius: 5px; border: none;
+  background: transparent; color: var(--text3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: all 0.12s; font-size: 12px;
+  flex-shrink: 0;
+}
+.book-item:hover .book-del { opacity: 1; }
+.book-del:hover { background: var(--red-dim); color: var(--red); }
+.book-del.admin-only { display: none; }
+
+/* Badge */
+.badge {
+  font-size: 9px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.badge.indexing { background: rgba(251,191,36,0.15); color: var(--amber); }
+.badge.done     { background: var(--green-dim); color: var(--green); }
+.badge.failed   { background: var(--red-dim); color: var(--red); }
+
+.pdot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  margin-right: 3px;
+  animation: pulse 1.2s infinite;
+  vertical-align: middle;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+/* Session item */
+.session-item {
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1px;
+  transition: background 0.12s;
+}
+.session-item:hover { background: var(--bg3); }
+.session-item.active { background: var(--bg4); }
+
+.session-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.session-item.active .session-name { color: var(--text); }
+
+.session-del {
+  width: 20px; height: 20px;
+  border-radius: 4px; border: none;
+  background: transparent; color: var(--text3);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: all 0.12s; font-size: 11px;
+}
+.session-item:hover .session-del { opacity: 1; }
+.session-del:hover { background: var(--red-dim); color: var(--red); }
+
+.divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+/* Sidebar bottom */
+.sidebar-bottom {
+  padding: 10px 12px 14px;
+  border-top: 1px solid var(--border);
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  font-size: 12px;
+  font-family: 'Sora', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.15s;
+}
+.logout-btn:hover { background: var(--red-dim); color: var(--red); border-color: rgba(248,113,113,0.2); }
+
+/* Empty list */
+.empty-list { padding: 10px 12px; font-size: 11px; color: var(--text3); }
+
+/* ══════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════ */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+/* Topbar */
+.topbar {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.topbar-badge {
+  font-size: 11px;
+  color: var(--text3);
+  background: var(--bg3);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.new-chat-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--text2);
+  font-size: 12px;
+  font-family: 'Sora', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.new-chat-btn:hover { background: var(--bg3); color: var(--text); }
+
+/* ── CHAT ── */
+.chat-wrap {
+  flex: 1;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+.chat-wrap::-webkit-scrollbar { width: 4px; }
+.chat-wrap::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.chat-inner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 32px 24px 16px;
+}
+
+/* Welcome */
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 65vh;
+  text-align: center;
+  gap: 18px;
+}
+
+.welcome-icon {
+  width: 60px; height: 60px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-glow);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+
+.welcome h2 {
+  font-family: 'Lora', serif;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: -0.02em;
+}
+
+.welcome p {
+  font-size: 13px;
+  color: var(--text2);
+  max-width: 360px;
+  line-height: 1.7;
+}
+
+.suggestion-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 6px;
+}
+
+.sug-card {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+.sug-card:hover { border-color: var(--accent); color: var(--text); background: var(--accent-dim); }
+.sug-card strong { display: block; color: var(--text); font-weight: 500; margin-bottom: 2px; font-size: 12px; }
+
+/* Messages */
+.message {
+  display: flex;
+  gap: 14px;
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+  animation: fadeUp 0.25s ease;
+}
+.message:first-child { border-top: none; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+.msg-av {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px;
+  margin-top: 2px;
+}
+.msg-av.user { background: var(--accent-dim); color: var(--accent2); font-size: 11px; font-weight: 600; }
+.msg-av.ai   { background: var(--bg3); color: var(--text2); font-size: 16px; }
+
+.msg-body { flex: 1; min-width: 0; }
+.msg-role { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.msg-content { font-size: 14px; color: var(--text2); line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+.msg-content.ai { color: #d4d4d8; }
+
+/* Typing */
+.typing { display: flex; gap: 4px; align-items: center; padding: 6px 0; }
+.typing span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text3);
+  animation: bounce 1.2s ease-in-out infinite;
+}
+.typing span:nth-child(2) { animation-delay: 0.15s; }
+.typing span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+/* ── INPUT ── */
+.input-section {
+  padding: 14px 24px 20px;
+  flex-shrink: 0;
+}
+
+.input-outer { max-width: 700px; margin: 0 auto; }
+
+.input-box {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  transition: border-color 0.2s;
+}
+.input-box:focus-within { border-color: rgba(99,102,241,0.4); }
+
+textarea#chatInput {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: 'Sora', sans-serif;
+  font-size: 14px;
+  resize: none;
+  max-height: 160px;
+  line-height: 1.6;
+  scrollbar-width: none;
+}
+textarea#chatInput::-webkit-scrollbar { display: none; }
+textarea#chatInput::placeholder { color: var(--text3); }
+
+.send-btn {
+  width: 34px; height: 34px;
+  border-radius: 9px; border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.send-btn:hover:not(:disabled) { background: var(--accent2); }
+.send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.input-hint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 8px;
+}
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+.modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500;
+  opacity: 0; pointer-events: none; transition: opacity 0.2s;
+}
+.modal-bg.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  width: 380px;
+  transform: scale(0.97);
+  transition: transform 0.2s;
+}
+.modal-bg.open .modal { transform: scale(1); }
+
+.modal h3 {
+  font-family: 'Lora', serif;
+  font-size: 17px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.modal p { font-size: 12px; color: var(--text2); margin-bottom: 18px; line-height: 1.6; }
+
+.modal input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-size: 13px;
+  font-family: 'Sora', sans-serif;
+  outline: none;
+  margin-bottom: 18px;
+  transition: border-color 0.15s;
+}
+.modal input:focus { border-color: var(--accent); }
+
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+.btn-cancel {
+  padding: 8px 16px; border-radius: 8px;
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--text2); font-size: 12px;
+  font-family: 'Sora', sans-serif;
+  cursor: pointer; transition: all 0.15s;
+}
+.btn-cancel:hover { background: var(--bg3); color: var(--text); }
+
+.btn-confirm {
+  padding: 8px 16px; border-radius: 8px;
+  background: var(--accent); border: none;
+  color: #fff; font-size: 12px; font-weight: 500;
+  font-family: 'Sora', sans-serif;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-confirm:hover { background: var(--accent2); }
+
+/* ══════════════════════════════════════════
+   ADMIN PANEL (tab)
+══════════════════════════════════════════ */
+.admin-panel {
+  display: none;
+  padding: 32px;
+  flex: 1;
+  overflow-y: auto;
+}
+.admin-panel.active { display: block; }
+
+.admin-title {
+  font-family: 'Lora', serif;
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.admin-section { margin-bottom: 32px; }
+.admin-section h3 { font-size: 12px; font-weight: 600; color: var(--text2); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.admin-table th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.admin-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+.admin-table tr:hover td { background: var(--bg2); }
+
+.role-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.role-tag.admin { background: var(--accent-dim); color: var(--accent2); }
+.role-tag.user  { background: var(--green-dim);  color: var(--green); }
+
+.del-session-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'Sora', sans-serif;
+}
+.del-session-btn:hover { background: var(--red-dim); color: var(--red); border-color: rgba(248,113,113,0.2); }
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+#toastBox {
+  position: fixed;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column;
+  align-items: center; gap: 8px;
+  z-index: 9999;
+}
+.toast {
+  padding: 9px 18px;
+  border-radius: 10px;
+  font-size: 12px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  animation: tin 0.25s ease;
+  white-space: nowrap;
+}
+.toast.success { border-color: rgba(74,222,128,0.3); }
+.toast.error   { border-color: rgba(248,113,113,0.3); color: var(--red); }
+@keyframes tin { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+/* Admin nav tab */
+.admin-tab {
+  display: none;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text3);
+  font-size: 12px;
+  font-family: 'Sora', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+  text-align: left;
+  margin-top: 4px;
+}
+.admin-tab:hover { background: var(--bg3); color: var(--text); }
+.admin-tab.active { background: var(--accent-dim); color: var(--accent2); border-color: var(--accent-glow); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-logo-icon">^_^</div>
+      <h1>B-Chat</h1>
+      <p>Book Intelligence Platform</p>
+    </div>
+    <div class="login-fields">
+      <div>
+        <div class="field-label">Username</div>
+        <input class="field-input" type="text" id="loginUser" placeholder="Enter username" autocomplete="username" />
+      </div>
+      <div>
+        <div class="field-label">Password</div>
+        <input class="field-input" type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password" />
+      </div>
+    </div>
+    <div class="login-error" id="loginError">Invalid username or password.</div>
+    <button class="login-btn" id="loginBtn">Sign in</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     MAIN APP
+══════════════════════════════════════ -->
+<div class="app" id="appShell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="brand-row">
+        <span class="brand">B-Chat</span>
+        <div class="user-pill">
+          <div class="role-dot" id="roleDot"></div>
+          <span id="userLabel">—</span>
+        </div>
+      </div>
+
+      <!-- Upload — admin only -->
+      <label class="sidebar-action-btn admin-only" id="uploadBtn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Upload PDF
+        <input type="file" id="fileInput" accept=".pdf" />
+      </label>
+
+      <!-- New conversation -->
+      <button class="sidebar-action-btn" id="newChatBtn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New Conversation
+      </button>
+
+      <!-- Admin panel tab -->
+      <button class="admin-tab" id="adminTabBtn">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:inline;vertical-align:middle;margin-right:6px"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        Admin Panel
+      </button>
+    </div>
+
+    <!-- Books -->
+    <div class="section-lbl">Library</div>
+    <div class="sidebar-scroll" id="booksScroll">
+      <div class="empty-list">No books yet</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Sessions -->
+    <div class="section-lbl">Conversations</div>
+    <div class="sidebar-scroll" id="sessionsScroll" style="flex:1">
+      <div class="empty-list">No conversations yet</div>
+    </div>
+
+    <!-- Logout -->
+    <div class="sidebar-bottom">
+      <button class="logout-btn" id="logoutBtn">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign out
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="mainArea">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title" id="topTitle">B-Chat</div>
+        <div class="topbar-badge" id="topBadge" style="display:none"></div>
+      </div>
+      <button class="new-chat-btn" id="topNewBtn" style="display:none">
+        + New chat
+      </button>
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-wrap" id="chatWrap">
+      <div class="chat-inner" id="chatInner"></div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-section">
+      <div class="input-outer">
+        <div class="input-box">
+          <textarea id="chatInput" placeholder="Ask anything about this book…" rows="1" disabled></textarea>
+          <button class="send-btn" id="sendBtn" disabled>
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+          </button>
+        </div>
+        <div class="input-hint" id="inputHint">Select a book and start a conversation</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ADMIN PANEL -->
+  <main class="admin-panel" id="adminPanel">
+    <div class="admin-title">Admin Panel</div>
+
+    <div class="admin-section">
+      <h3>Users</h3>
+      <table class="admin-table">
+        <thead><tr><th>Username</th><th>Role</th></tr></thead>
+        <tbody id="adminUsersTable"></tbody>
+      </table>
+    </div>
+
+    <div class="admin-section">
+      <h3>All Sessions</h3>
+      <table class="admin-table">
+        <thead><tr><th>Session</th><th>Book</th><th>User</th><th>Messages</th><th></th></tr></thead>
+        <tbody id="adminSessionsTable"></tbody>
+      </table>
+    </div>
+  </main>
+
+</div>
+
+<!-- New session modal -->
+<div class="modal-bg" id="sessionModal">
+  <div class="modal">
+    <h3>New Conversation</h3>
+    <p id="modalDesc">Start a new conversation with this book.</p>
+    <input type="text" id="sessionDesc" placeholder="Label (optional)" maxlength="80" />
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-confirm" id="modalConfirm">Start</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastBox"></div>
+
+<script>
+const API = 'http://127.0.0.1:8000';
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let auth = { username: '', password: '', role: '' };
+
+let state = {
+  books: [], sessions: [],
+  activeBook: null, activeSession: null,
+  polling: {}, adminView: false,
+};
+
+// ── UTILS ──────────────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toastBox').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+}
+
+function bookColor(name) {
+  const colors = ['#6366f1','#06b6d4','#10b981','#f59e0b','#ec4899','#8b5cf6','#ef4444'];
+  let h = 0;
+  for (const c of (name || 'X')) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+  return colors[h % colors.length];
+}
+
+// ── API (with Basic Auth header) ──────────────────────────────────────────
+function basicHeader() {
+  return 'Basic ' + btoa(`${auth.username}:${auth.password}`);
+}
+
+async function apiFetch(path, opts = {}) {
+  const headers = { 'Authorization': basicHeader(), ...(opts.headers || {}) };
+  const res = await fetch(API + path, { ...opts, headers });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail || 'Request failed');
+  }
+  return res.json();
+}
+
+// ══════════════════════════════════════════
+// LOGIN
+// ══════════════════════════════════════════
+async function doLogin() {
+  const username = document.getElementById('loginUser').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const errEl    = document.getElementById('loginError');
+
+  if (!username || !password) {
+    errEl.textContent = 'Please enter username and password.';
+    errEl.classList.add('show');
+    return;
+  }
+
+  // Test credentials against /auth/me
+  try {
+    const creds = 'Basic ' + btoa(`${username}:${password}`);
+    const res = await fetch(`${API}/auth/me`, {
+      headers: { 'Authorization': creds }
+    });
+
+    if (!res.ok) throw new Error('Invalid credentials');
+
+    const me = await res.json();
+    auth = { username, password, role: me.role };
+
+    errEl.classList.remove('show');
+    showApp();
+  } catch (e) {
+    errEl.textContent = 'Invalid username or password.';
+    errEl.classList.add('show');
+  }
+}
+
+function showApp() {
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appShell').classList.add('visible');
+
+  // Apply role-based UI
+  document.getElementById('userLabel').textContent = `${auth.username} · ${auth.role}`;
+  document.getElementById('roleDot').className = `role-dot ${auth.role}`;
+
+  // Always reset all admin elements first
+  document.getElementById('uploadBtn').style.display   = 'none';
+  document.getElementById('adminTabBtn').style.display = 'none';
+  showChatView();
+
+  // Only show admin UI if role is admin
+  if (auth.role === 'admin') {
+    document.getElementById('uploadBtn').style.display   = 'flex';
+    document.getElementById('adminTabBtn').style.display = 'block';
+  }
+
+  showWelcome();
+  init();
+}
+
+function doLogout() {
+  auth  = { username: '', password: '', role: '' };
+  state = { books: [], sessions: [], activeBook: null, activeSession: null, polling: {}, adminView: false };
+
+  // Reset admin UI
+  document.getElementById('uploadBtn').style.display   = 'none';
+  document.getElementById('adminTabBtn').style.display = 'none';
+  showChatView();
+
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('appShell').classList.remove('visible');
+  document.getElementById('loginUser').value  = '';
+  document.getElementById('loginPass').value  = '';
+  document.getElementById('loginError').classList.remove('show');
+}
+
+// ── LOGIN EVENTS ───────────────────────────────────────────────────────────
+document.getElementById('loginBtn').addEventListener('click', doLogin);
+document.getElementById('loginPass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('logoutBtn').addEventListener('click', doLogout);
+
+// ══════════════════════════════════════════
+// LOAD DATA
+// ══════════════════════════════════════════
+async function loadBooks() {
+  try { state.books = await apiFetch('/books/'); renderBooks(); }
+  catch (e) { console.error(e); }
+}
+
+async function loadSessions() {
+  try { state.sessions = await apiFetch('/sessions'); renderSessions(); }
+  catch (e) { console.error(e); }
+}
+
+async function loadMessages(sessionId) {
+  const s = await apiFetch(`/sessions/${sessionId}`);
+  return (s.messages || []).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+}
+
+// ══════════════════════════════════════════
+// UPLOAD (admin only)
+// ══════════════════════════════════════════
+async function uploadFile(file) {
+  if (!file?.name.endsWith('.pdf')) { toast('Only PDF files supported', 'error'); return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  toast('Uploading…');
+  try {
+    const res = await apiFetch('/books/upload', { method: 'POST', body: fd });
+    state.books.push({ book_id: res.book_id, book_name: res.book_name, chunks: 0, status: 'indexing' });
+    renderBooks();
+    toast(`"${res.book_name}" uploaded. Indexing…`, 'success');
+    pollIndexing(res.book_id, res.book_name);
+  } catch (e) { toast(`Upload failed: ${e.message}`, 'error'); }
+}
+
+function pollIndexing(bookId, bookName) {
+  if (state.polling[bookId]) return;
+  state.polling[bookId] = setInterval(async () => {
+    try {
+      const s = await apiFetch(`/books/status/${bookId}`);
+      const idx = state.books.findIndex(b => b.book_id === bookId);
+      if (s.status === 'done') {
+        clearInterval(state.polling[bookId]); delete state.polling[bookId];
+        if (idx !== -1) { state.books[idx].chunks = s.chunks; state.books[idx].status = 'done'; }
+        toast(`"${bookName}" ready! 🎉`, 'success');
+        renderBooks();
+      } else if (s.status.startsWith('failed')) {
+        clearInterval(state.polling[bookId]); delete state.polling[bookId];
+        if (idx !== -1) state.books[idx].status = 'failed';
+        toast(`Indexing failed for "${bookName}"`, 'error');
+        renderBooks();
+      }
+    } catch (e) { console.error(e); }
+  }, 3000);
+}
+
+// ══════════════════════════════════════════
+// RENDER BOOKS
+// ══════════════════════════════════════════
+function renderBooks() {
+  const el = document.getElementById('booksScroll');
+  if (!state.books.length) { el.innerHTML = '<div class="empty-list">No books yet</div>'; return; }
+
+  el.innerHTML = state.books.map(b => {
+    const color = bookColor(b.book_name);
+    const status = b.status || 'done';
+    const isActive = state.activeBook?.book_id === b.book_id;
+
+    let badge = '';
+    if (status === 'indexing') badge = `<span class="badge indexing"><span class="pdot"></span>Indexing</span>`;
+    else if (status === 'failed') badge = `<span class="badge failed">Failed</span>`;
+
+    // Delete button only shown for admin
+    const delBtn = auth.role === 'admin'
+      ? `<button class="book-del" onclick="deleteBook(event,'${b.book_id}','${(b.book_name||'').replace(/'/g,"\\'")}')">✕</button>`
+      : '';
+
+    return `
+      <div class="book-item ${isActive ? 'active' : ''}" onclick="selectBook('${b.book_id}')">
+        <div class="book-icon" style="background:${color}22; color:${color}">📖</div>
+        <div class="book-info">
+          <div class="book-name">${b.book_name || 'Untitled'}</div>
+          <div class="book-sub">${badge || b.chunks + ' chunks'}</div>
+        </div>
+        ${delBtn}
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// RENDER SESSIONS
+// ══════════════════════════════════════════
+function renderSessions() {
+  const el = document.getElementById('sessionsScroll');
+  const list = state.activeBook
+    ? state.sessions.filter(s => s.book_id === state.activeBook.book_id)
+    : state.sessions;
+
+  if (!list.length) { el.innerHTML = '<div class="empty-list">No conversations yet</div>'; return; }
+
+  el.innerHTML = list.map(s => {
+    const isActive = state.activeSession?.session_id === s.session_id;
+    return `
+      <div class="session-item ${isActive ? 'active' : ''}" onclick="selectSession('${s.session_id}')">
+        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;opacity:0.4"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span class="session-name">${s.description || 'Conversation'}</span>
+        <button class="session-del" onclick="deleteSession(event,'${s.session_id}')">✕</button>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════
+// SELECT BOOK / SESSION
+// ══════════════════════════════════════════
+function selectBook(bookId) {
+  state.activeBook = state.books.find(b => b.book_id === bookId);
+  state.activeSession = null;
+  state.adminView = false;
+  showChatView();
+  renderBooks(); renderSessions(); updateTopbar();
+  document.getElementById('topNewBtn').style.display = 'flex';
+  document.getElementById('chatInput').disabled = true;
+  document.getElementById('sendBtn').disabled = true;
+  document.getElementById('inputHint').textContent = 'Click "New Conversation" to start chatting';
+  showWelcome();
+}
+
+async function selectSession(sessionId) {
+  state.activeSession = state.sessions.find(s => s.session_id === sessionId);
+  if (state.activeSession && (!state.activeBook || state.activeSession.book_id !== state.activeBook?.book_id)) {
+    state.activeBook = state.books.find(b => b.book_id === state.activeSession.book_id);
+  }
+  state.adminView = false;
+  showChatView();
+  renderBooks(); renderSessions(); updateTopbar();
+  const messages = await loadMessages(sessionId);
+  renderMessages(messages);
+  enableInput();
+}
+
+// ══════════════════════════════════════════
+// DELETE
+// ══════════════════════════════════════════
+async function deleteBook(e, bookId, bookName) {
+  e.stopPropagation();
+  if (!confirm(`Delete "${bookName}" and all its data?`)) return;
+  try {
+    await apiFetch(`/books/${bookId}`, { method: 'DELETE' });
+    state.books = state.books.filter(b => b.book_id !== bookId);
+    if (state.activeBook?.book_id === bookId) {
+      state.activeBook = null; state.activeSession = null;
+      showWelcome(); updateTopbar();
+      document.getElementById('topNewBtn').style.display = 'none';
+    }
+    state.sessions = state.sessions.filter(s => s.book_id !== bookId);
+    renderBooks(); renderSessions();
+    toast(`"${bookName}" deleted`);
+  } catch (e) { toast(`Error: ${e.message}`, 'error'); }
+}
+
+async function deleteSession(e, sessionId) {
+  e.stopPropagation();
+  try {
+    await apiFetch(`/sessions/${sessionId}`, { method: 'DELETE' });
+    state.sessions = state.sessions.filter(s => s.session_id !== sessionId);
+    if (state.activeSession?.session_id === sessionId) {
+      state.activeSession = null; showWelcome();
+      document.getElementById('chatInput').disabled = true;
+      document.getElementById('sendBtn').disabled = true;
+    }
+    renderSessions();
+    toast('Conversation deleted');
+  } catch (e) { toast(`Error: ${e.message}`, 'error'); }
+}
+
+// ══════════════════════════════════════════
+// NEW SESSION MODAL
+// ══════════════════════════════════════════
+function openNewChatModal() {
+  if (!state.activeBook) { toast('Select a book first', 'error'); return; }
+  if (state.activeBook.status === 'indexing') { toast('Book still indexing…', 'error'); return; }
+  document.getElementById('sessionDesc').value = '';
+  document.getElementById('modalDesc').textContent = `New conversation about "${state.activeBook.book_name}".`;
+  document.getElementById('sessionModal').classList.add('open');
+  setTimeout(() => document.getElementById('sessionDesc').focus(), 100);
+}
+
+document.getElementById('newChatBtn').addEventListener('click', openNewChatModal);
+document.getElementById('topNewBtn').addEventListener('click', openNewChatModal);
+document.getElementById('modalCancel').addEventListener('click', () => document.getElementById('sessionModal').classList.remove('open'));
+document.getElementById('modalConfirm').addEventListener('click', createSession);
+document.getElementById('sessionDesc').addEventListener('keydown', e => { if (e.key === 'Enter') createSession(); });
+
+async function createSession() {
+  const desc = document.getElementById('sessionDesc').value.trim();
+  document.getElementById('sessionModal').classList.remove('open');
+  try {
+    const s = await apiFetch('/sessions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ book_id: state.activeBook.book_id, description: desc || null }),
+    });
+    state.sessions.unshift(s);
+    state.activeSession = s;
+    renderSessions(); renderMessages([]); enableInput(); updateTopbar();
+    toast('Conversation started!', 'success');
+  } catch (e) { toast(`Error: ${e.message}`, 'error'); }
+}
+
+// ══════════════════════════════════════════
+// ADMIN PANEL
+// ══════════════════════════════════════════
+document.getElementById('adminTabBtn').addEventListener('click', async () => {
+  state.adminView = !state.adminView;
+  document.getElementById('adminTabBtn').classList.toggle('active', state.adminView);
+
+  if (state.adminView) {
+    document.getElementById('mainArea').style.display = 'none';
+    document.getElementById('adminPanel').classList.add('active');
+    await loadAdminData();
+  } else {
+    showChatView();
+  }
+});
+
+function showChatView() {
+  document.getElementById('mainArea').style.display = 'flex';
+  document.getElementById('adminPanel').classList.remove('active');
+  document.getElementById('adminTabBtn').classList.remove('active');
+  state.adminView = false;
+}
+
+async function loadAdminData() {
+  try {
+    const [users, sessions] = await Promise.all([
+      apiFetch('/admin/users'),
+      apiFetch('/admin/sessions'),
+    ]);
+
+    // Users table
+    document.getElementById('adminUsersTable').innerHTML = users.map(u => `
+      <tr>
+        <td>${u.username}</td>
+        <td><span class="role-tag ${u.role}">${u.role}</span></td>
+      </tr>`).join('');
+
+    // Sessions table
+    document.getElementById('adminSessionsTable').innerHTML = sessions.map(s => `
+      <tr>
+        <td style="font-size:11px;color:var(--text3)">${s.session_id.slice(0,8)}…</td>
+        <td>${s.book_id.slice(0,8)}…</td>
+        <td>${s.user_id.slice(0,8)}…</td>
+        <td>${s.message_count}</td>
+        <td>
+          <button class="del-session-btn" onclick="adminDeleteSession('${s.session_id}')">Delete</button>
+        </td>
+      </tr>`).join('');
+
+  } catch (e) { toast(`Admin load failed: ${e.message}`, 'error'); }
+}
+
+async function adminDeleteSession(sessionId) {
+  if (!confirm('Delete this session?')) return;
+  try {
+    await apiFetch(`/admin/sessions/${sessionId}`, { method: 'DELETE' });
+    toast('Session deleted', 'success');
+    await loadAdminData();
+  } catch (e) { toast(`Error: ${e.message}`, 'error'); }
+}
+
+// ══════════════════════════════════════════
+// TOPBAR
+// ══════════════════════════════════════════
+function updateTopbar() {
+  const title = document.getElementById('topTitle');
+  const badge = document.getElementById('topBadge');
+  if (state.activeSession) {
+    title.textContent = state.activeSession.description || 'Conversation';
+    badge.textContent = state.activeBook?.book_name || '';
+    badge.style.display = 'block';
+  } else if (state.activeBook) {
+    title.textContent = state.activeBook.book_name;
+    badge.style.display = 'none';
+  } else {
+    title.textContent = 'B-Chat';
+    badge.style.display = 'none';
+  }
+}
+
+// ══════════════════════════════════════════
+// CHAT RENDER
+// ══════════════════════════════════════════
+function showWelcome() {
+  const inner = document.getElementById('chatInner');
+  inner.innerHTML = `
+    <div class="welcome">
+      <div class="welcome-icon">^_^</div>
+      <h2>What can I help you read?</h2>
+      <p>Select a book from the sidebar, start a conversation and ask anything about it.</p>
+    </div>`;
+}
+
+function renderMessages(messages) {
+  const inner = document.getElementById('chatInner');
+  inner.innerHTML = '';
+  if (!messages.length) { showWelcome(); return; }
+  messages.forEach(m => inner.appendChild(buildMsg(m.role, m.content)));
+  scrollBottom();
+}
+
+function buildMsg(role, content) {
+  const isUser = role === 'user';
+  const div = document.createElement('div');
+  div.className = 'message';
+  div.innerHTML = `
+    <div class="msg-av ${isUser ? 'user' : 'ai'}">${isUser ? auth.username.slice(0,2).toUpperCase() : '✦'}</div>
+    <div class="msg-body">
+      <div class="msg-role">${isUser ? auth.username : 'B-Chat'}</div>
+      <div class="msg-content ${isUser ? '' : 'ai'}">${content.replace(/\n/g,'<br>')}</div>
+    </div>`;
+  return div;
+}
+
+function appendMsg(role, content) {
+  const inner = document.getElementById('chatInner');
+  const w = inner.querySelector('.welcome');
+  if (w) w.remove();
+  inner.appendChild(buildMsg(role, content));
+  scrollBottom();
+}
+
+function showTyping() {
+  const inner = document.getElementById('chatInner');
+  const div = document.createElement('div');
+  div.className = 'message'; div.id = 'typingMsg';
+  div.innerHTML = `<div class="msg-av ai">✦</div><div class="msg-body"><div class="msg-role">B-Chat</div><div class="typing"><span></span><span></span><span></span></div></div>`;
+  inner.appendChild(div);
+  scrollBottom();
+}
+
+function hideTyping() {
+  const el = document.getElementById('typingMsg');
+  if (el) el.remove();
+}
+
+function scrollBottom() {
+  const w = document.getElementById('chatWrap');
+  w.scrollTop = w.scrollHeight;
+}
+
+// ══════════════════════════════════════════
+// INPUT
+// ══════════════════════════════════════════
+function enableInput() {
+  const input = document.getElementById('chatInput');
+  input.disabled = false;
+  document.getElementById('sendBtn').disabled = false;
+  document.getElementById('inputHint').textContent = 'Press Enter to send · Shift+Enter for new line';
+  input.focus();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chatInput');
+  const query = input.value.trim();
+  if (!query || !state.activeSession) return;
+
+  input.value = ''; autoResize(input);
+  input.disabled = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  appendMsg('user', query);
+  showTyping();
+
+  try {
+    const res = await fetch(`${API}/books/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': basicHeader(),
+      },
+      body: JSON.stringify({ session_id: state.activeSession.session_id, query }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ detail: res.statusText }));
+      throw new Error(err.detail || 'Request failed');
+    }
+
+    // Remove typing indicator and create streaming message bubble
+    hideTyping();
+    const inner = document.getElementById('chatInner');
+    const w = inner.querySelector('.welcome');
+    if (w) w.remove();
+
+    const msgEl = document.createElement('div');
+    msgEl.className = 'message';
+    msgEl.innerHTML = `
+      <div class="msg-av ai">✦</div>
+      <div class="msg-body">
+        <div class="msg-role">Assistant</div>
+        <div class="msg-content ai" id="streamingContent"></div>
+      </div>`;
+    inner.appendChild(msgEl);
+
+    const contentEl = document.getElementById('streamingContent');
+
+    // Read SSE stream — parse each "data: {...}" line for tokens
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // Process all complete SSE lines in the buffer
+      const lines = buffer.split('\n');
+      buffer = lines.pop(); // keep incomplete last line in buffer
+
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const dataStr = line.slice(6).trim();
+          if (!dataStr) continue;
+          try {
+            const payload = JSON.parse(dataStr);
+            if (payload.token !== undefined) {
+              fullText += payload.token;
+              contentEl.innerHTML = fullText.replace(/\n/g, '<br>');
+              scrollBottom();
+            }
+            // payload.done = true signals end — backend saves to DB
+          } catch (err) {
+            // ignore parse errors on individual lines
+          }
+        }
+      }
+    }
+
+  } catch (e) {
+    hideTyping();
+    appendMsg('assistant', `Sorry, something went wrong: ${e.message}`);
+    toast(e.message, 'error');
+  } finally {
+    input.disabled = false;
+    document.getElementById('sendBtn').disabled = false;
+    input.focus();
+  }
+}
+
+// Suggestion cards
+document.getElementById('chatInner').addEventListener('click', e => {
+  const card = e.target.closest('.sug-card');
+  if (card && state.activeSession) {
+    document.getElementById('chatInput').value = card.dataset.q;
+    sendMessage();
+  }
+});
+
+// Input events
+document.getElementById('chatInput').addEventListener('input', function() { autoResize(this); });
+document.getElementById('chatInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+document.getElementById('sendBtn').addEventListener('click', sendMessage);
+
+// File upload
+document.getElementById('fileInput').addEventListener('change', e => {
+  if (e.target.files[0]) { uploadFile(e.target.files[0]); e.target.value = ''; }
+});
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+async function init() {
+  await Promise.all([loadBooks(), loadSessions()]);
+  showWelcome();
+}
+</script>
+</body>
+</html>
