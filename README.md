@@ -223,9 +223,6 @@ MODEL_ID=us.meta.llama4-maverick-17b-instruct-v1:0
 # Max PDF upload size in MB
 MAX_UPLOAD_SIZE_MB=50
 
-# JWT settings
-JWT_SECRET=change_this_to_a_long_random_string
-JWT_EXPIRE_HOURS=24
 ```
 
 AWS credentials are read from `aws configure` (recommended) or from environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
