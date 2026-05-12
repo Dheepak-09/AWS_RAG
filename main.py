@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 # App
 # ---------------------------------------------------------------------------
 app = FastAPI(
-    title="Ailaysa RAG API",
+    title="RAG API",
     description="Upload books and chat with them. Role based access via HTTP Basic Auth.",
     version="1.0.0",
 )
@@ -65,7 +65,7 @@ async def log_requests(request: Request, call_next):
 @app.on_event("startup")
 def startup():
     logger.info("=" * 60)
-    logger.info("Ailaysa RAG API starting up...")
+    logger.info("RAG API starting up...")
     create_tables()
     logger.info("API live  → http://127.0.0.1:8000")
     logger.info("Docs      → http://127.0.0.1:8000/docs")
@@ -88,4 +88,4 @@ app.include_router(admin_router,    prefix="/admin",    tags=["Admin"])
 # ---------------------------------------------------------------------------
 @app.get("/")
 def root():
-    return {"message": "Ailaysa RAG API is running", "status": "ok"}
+    return {"message": "RAG API is running", "status": "ok"}
