@@ -50,7 +50,7 @@ def open_browser():
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     print("=" * 50)
-    print("  Ailaysa RAG — Starting up")
+    print(" RAG — Starting up")
     print("=" * 50)
 
     # Run backend and frontend in separate threads
